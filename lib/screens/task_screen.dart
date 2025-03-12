@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
 import 'package:uuid/uuid.dart';
+import 'package:geolocator/geolocator.dart';
 
 class NewTaskScreen extends StatefulWidget {
   final Function(Task) onTaskCreated;
@@ -15,6 +16,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  double? _latitude;
+  double? _longitude;
+
 
   void _saveTask() {
     if (_formKey.currentState!.validate()) {
@@ -22,12 +26,44 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         id: const Uuid().v4(),
         title: _titleController.text,
         description: _descriptionController.text,
+        latitude: _latitude,
+        longitude: _longitude
       );
 
       widget.onTaskCreated(newTask);
       Navigator.pop(context);
     }
   }
+
+  Future<void> _getCurrentLocation() async {
+  bool serviceEnabled;
+  LocationPermission permission;
+
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    await Geolocator.openLocationSettings();
+    return;
+  }
+
+  permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      return;
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    return;
+  }
+
+  final position = await Geolocator.getCurrentPosition();
+  setState(() {
+    _latitude = position.latitude;
+    _longitude = position.longitude;
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
