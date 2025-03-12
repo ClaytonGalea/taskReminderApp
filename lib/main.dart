@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'models/task.dart';
+import 'screens/task_screen.dart';
 
 void main() {
   runApp(const TaskReminderApp());
@@ -34,23 +35,41 @@ class _HomeScreenState extends State<HomeScreen> {
     Task(id: '2', title: 'Walk the dog', description: '6:00 PM in the park'),
   ];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Task Reminder'),
-      ),
-      body: ListView.builder(
-        itemCount: _tasks.length,
-        itemBuilder: (context, index) {
-          final task = _tasks[index];
-          return ListTile(
-            leading: const Icon(Icons.check_box_outline_blank),
-            title: Text(task.title),
-            subtitle: task.description != null ? Text(task.description!) : null,
-          );
-        },
-      ),
-    );
-  }
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Task Reminder'),
+    ),
+    body: ListView.builder(
+      itemCount: _tasks.length,
+      itemBuilder: (context, index) {
+        final task = _tasks[index];
+        return ListTile(
+          leading: const Icon(Icons.check_box_outline_blank),
+          title: Text(task.title),
+          subtitle: task.description != null ? Text(task.description!) : null,
+        );
+      },
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NewTaskScreen(
+              onTaskCreated: (newTask) {
+                setState(() {
+                  _tasks.add(newTask);
+                });
+              },
+            ),
+          ),
+        );
+      },
+      child: const Icon(Icons.add),
+    ),
+  );
+}
+
 }
