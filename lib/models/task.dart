@@ -4,6 +4,7 @@ class Task {
   String? description;
   double? latitude;
   double? longitude;
+  String? locationName;
 
   Task({
     required this.id,
@@ -11,5 +12,6 @@ class Task {
     this.description,
     this.latitude,
     this.longitude,
+    this.locationName
   });
 }

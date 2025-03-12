@@ -46,10 +46,23 @@ Widget build(BuildContext context) {
       itemBuilder: (context, index) {
         final task = _tasks[index];
         return ListTile(
-          leading: const Icon(Icons.check_box_outline_blank),
-          title: Text(task.title),
-          subtitle: task.description != null ? Text(task.description!) : null,
-        );
+            leading: const Icon(Icons.check_box_outline_blank),
+            title: Text(task.title),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (task.description != null && task.description!.isNotEmpty)
+                  Text(task.description!),
+                if (task.latitude != null && task.longitude != null)
+                  Text(' ${task.latitude}, ${task.longitude}'),
+                if (task.locationName != null && task.locationName!.isNotEmpty)
+                  Text(' ${task.locationName}'),
+              ],
+            ),
+          );
+
+
       },
     ),
     floatingActionButton: FloatingActionButton(
