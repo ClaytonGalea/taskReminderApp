@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "130840800058",
+    "project_id": "taskreminderappfirebase",
+    "storage_bucket": "taskreminderappfirebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:130840800058:android:63a59946527261e89abe03",
+        "android_client_info": {
+          "package_name": "com.example.task_reminder_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhlHG-Rs7BNPe9t-v5-QSB3_PXyTPJXDg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
