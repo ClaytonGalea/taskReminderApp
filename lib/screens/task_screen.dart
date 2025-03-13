@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class NewTaskScreen extends StatefulWidget {
   final Function(Task) onTaskCreated;
@@ -33,18 +34,27 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         locationName: _placeName,
       );
 
+      // Save to app state
       widget.onTaskCreated(newTask);
 
-      // 🔔 Schedule notification after 5 seconds
-      print("Scheduling notification in 5 seconds");
+      // Save to Firebase Realtime Database
+      final dbRef = FirebaseDatabase.instance.ref('tasks');
+      await dbRef.push().set({
+        'id': newTask.id,
+        'title': newTask.title,
+        'description': newTask.description ?? '',
+        'latitude': newTask.latitude,
+        'longitude': newTask.longitude,
+        'locationName': newTask.locationName ?? '',
+      });
 
+      // Schedule notification in 5 seconds
       await AwesomeNotifications().createNotification(
         content: NotificationContent(
           id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
           channelKey: 'basic_channel',
           title: 'Task Reminder ⏰',
           body: 'Check your task: ${_titleController.text}',
-          notificationLayout: NotificationLayout.Default,
         ),
         schedule: NotificationInterval(
           interval: 5,
@@ -84,13 +94,11 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     setState(() {
       _latitude = position.latitude;
       _longitude = position.longitude;
-      _placeName = '${place.street}, ${place.locality} ${place.country}';
+      _placeName = '${place.street}, ${place.locality}, ${place.country}';
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('📍 $_placeName'),
-      ),
+      SnackBar(content: Text('📍 $_placeName')),
     );
   }
 
@@ -102,33 +110,40 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Task Title'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Title is required' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _getCurrentLocation,
-                icon: const Icon(Icons.my_location),
-                label: const Text("Use My Location"),
-              ),
-              if (_latitude != null && _longitude != null)
-                Text('📍 $_latitude, $_longitude'),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _saveTask,
-                child: const Text('Save Task'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Task Title'),
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Title is required'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration:
+                      const InputDecoration(labelText: 'Description'),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _getCurrentLocation,
+                  icon: const Icon(Icons.my_location),
+                  label: const Text("Use My Location"),
+                ),
+                if (_latitude != null && _longitude != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text('📍 $_latitude, $_longitude'),
+                  ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _saveTask,
+                  child: const Text('Save Task'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
