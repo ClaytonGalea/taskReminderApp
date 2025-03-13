@@ -3,7 +3,7 @@ import '../models/task.dart';
 import 'package:uuid/uuid.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-
+import 'package:awesome_notifications/awesome_notifications.dart';
 
 class NewTaskScreen extends StatefulWidget {
   final Function(Task) onTaskCreated;
@@ -22,8 +22,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   double? _longitude;
   String? _placeName;
 
-
-  void _saveTask() {
+  Future<void> _saveTask() async {
     if (_formKey.currentState!.validate()) {
       final newTask = Task(
         id: const Uuid().v4(),
@@ -31,60 +30,69 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         description: _descriptionController.text,
         latitude: _latitude,
         longitude: _longitude,
-        locationName: _placeName
+        locationName: _placeName,
       );
 
       widget.onTaskCreated(newTask);
+
+      // 🔔 Schedule notification after 5 seconds
+      print("Scheduling notification in 5 seconds");
+
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+          channelKey: 'basic_channel',
+          title: 'Task Reminder ⏰',
+          body: 'Check your task: ${_titleController.text}',
+          notificationLayout: NotificationLayout.Default,
+        ),
+        schedule: NotificationInterval(
+          interval: 5,
+          timeZone: await AwesomeNotifications().getLocalTimeZoneIdentifier(),
+          repeats: false,
+        ),
+      );
+
       Navigator.pop(context);
     }
   }
-Future<void> _getCurrentLocation() async {
-  bool serviceEnabled;
-  LocationPermission permission;
 
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    await Geolocator.openLocationSettings();
-    return;
-  }
-
-  permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
       return;
     }
-  }
 
-  if (permission == LocationPermission.deniedForever) {
-    return;
-  }
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
 
-  final position = await Geolocator.getCurrentPosition();
+    if (permission == LocationPermission.deniedForever) return;
 
-  // Converting the GPS into human readable address
-  List<Placemark> placemarks = await placemarkFromCoordinates(
-    position.latitude,
-    position.longitude,
-  );
+    final position = await Geolocator.getCurrentPosition();
 
-  final place = placemarks.first;
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+      position.latitude,
+      position.longitude,
+    );
 
-  setState(() {
-    _latitude = position.latitude;
-    _longitude = position.longitude;
-    _placeName = '${place.street}, ${place.locality} ${place.country}';
-  });
+    final place = placemarks.first;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        '📍 ${place.street}, ${place.locality}, ${place.country}',
+    setState(() {
+      _latitude = position.latitude;
+      _longitude = position.longitude;
+      _placeName = '${place.street}, ${place.locality} ${place.country}';
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('📍 $_placeName'),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,15 +114,15 @@ Future<void> _getCurrentLocation() async {
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
-              ),ElevatedButton.icon(
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
                 onPressed: _getCurrentLocation,
                 icon: const Icon(Icons.my_location),
                 label: const Text("Use My Location"),
               ),
               if (_latitude != null && _longitude != null)
                 Text('📍 $_latitude, $_longitude'),
-              const SizedBox(height: 16),
-
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _saveTask,
