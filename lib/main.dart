@@ -3,32 +3,26 @@ import 'models/task.dart';
 import 'screens/task_screen.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
-
-
+import 'package:accessibility_tools/accessibility_tools.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  FirebaseDatabase.instance.ref().child("test").set({"hello": "world"}).then((_) {
-    print("✅ Firebase test write complete");
-  }).catchError((e) {
-    print("❌ Firebase test write error: $e");
-  });
+
 
   // Initialize the notification system
   await AwesomeNotifications().initialize(
     null,
     [
-        NotificationChannel(
-      channelKey: 'basic_channel',
-      channelName: 'Task Reminders',
-      channelDescription: 'Channel for task notifications',
-      defaultColor: Color(0xFF9D50DD),
-      ledColor: Colors.white,
-      importance: NotificationImportance.High,
-      criticalAlerts: true,
-      locked: true,
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Task Reminders',
+        channelDescription: 'Channel for task notifications',
+        defaultColor: Color(0xFF9D50DD),
+        ledColor: Colors.white,
+        importance: NotificationImportance.High,
+        criticalAlerts: true,
+        locked: true,
     ),
 
     ],
@@ -50,6 +44,7 @@ class TaskReminderApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      builder: (context, child) => AccessibilityTools(child: child),
       title: 'Task Reminder',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
