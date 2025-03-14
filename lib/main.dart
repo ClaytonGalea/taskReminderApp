@@ -44,7 +44,7 @@ class TaskReminderApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      builder: (context, child) => AccessibilityTools(child: child),
+      builder: (context, child) => AccessibilityTools(child: child,buttonsAlignment: ButtonsAlignment.bottomLeft,),
       title: 'Task Reminder',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
